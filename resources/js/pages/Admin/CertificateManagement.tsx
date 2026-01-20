@@ -100,7 +100,7 @@ export default function CertificateManagement({ certificates, users, courses, fi
     try {
       const response = await fetch('/admin/certificates/export', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
       if (response.status === 419) { window.location.reload(); return; }
-      if (!response.ok) throw new Error('Export Failed');
+      if (!response.ok) throw new Error(t('exportFailed'));
       const allCertificates = await response.json();
       const exportColumns = columns.filter(col => col.key !== 'actions');
       const headers = exportColumns.map(col => col.label).join(',');
@@ -114,7 +114,7 @@ export default function CertificateManagement({ certificates, users, courses, fi
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'Certificates.csv';
+      link.download = `${t('certificatesExportFilename')}.csv`;
       link.click();
       URL.revokeObjectURL(url);
       showToast(t('certificatesExportedSuccess'), 'success');
@@ -214,7 +214,7 @@ export default function CertificateManagement({ certificates, users, courses, fi
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8 flex justify-between items-center">
               <div>
-                <h1 className="text-4xl font-bold text-black dark:text-white mb-2">{t('certificateManagement')}</h1>
+                <h1 className="text-4xl text-black dark:text-white mb-2">{t('certificateManagement')}</h1>
                 <p className="text-zinc-600 dark:text-zinc-400">{t('manageCertificatesSubtitle')}</p>
               </div>
               <button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black hover:bg-zinc-800 dark:hover:bg-zinc-200 font-medium cursor-pointer">

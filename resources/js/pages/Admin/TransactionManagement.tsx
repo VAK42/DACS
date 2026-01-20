@@ -75,7 +75,7 @@ export default function TransactionManagement({ transactions, filters, stats, us
     try {
       const response = await fetch('/admin/transactions/export', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
       if (response.status === 419) { window.location.reload(); return; }
-      if (!response.ok) throw new Error('Export Failed');
+      if (!response.ok) throw new Error(t('exportFailed'));
       const allTransactions = await response.json();
       const exportColumns = columns.filter(col => col.key !== 'actions');
       const headers = exportColumns.map(col => col.label).join(',');
@@ -92,7 +92,7 @@ export default function TransactionManagement({ transactions, filters, stats, us
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'Transactions.csv';
+      link.download = `${t('transactionsExportFilename')}.csv`;
       link.click();
       URL.revokeObjectURL(url);
       showToast(t('transactionsExportedSuccess'), 'success');
@@ -133,8 +133,8 @@ export default function TransactionManagement({ transactions, filters, stats, us
       label: t('amount'),
       sortable: true,
       render: (value: number) => value != null ? (
-        <span className="font-semibold text-black dark:text-white">${Number(value).toFixed(2)}</span>
-      ) : '$0.00'
+        <span className="font-semibold text-black dark:text-white">{t('currencySymbol')}{Number(value).toFixed(2)}</span>
+      ) : `${t('currencySymbol')}0.00`
     },
     {
       key: 'paymentMethod',
@@ -194,7 +194,7 @@ export default function TransactionManagement({ transactions, filters, stats, us
         },
       });
       if (response.status === 419) { window.location.reload(); return; }
-      if (!response.ok) throw new Error('Failed');
+      if (!response.ok) throw new Error(t('failedToConfirmTransaction'));
       showToast(t('transactionConfirmedSuccess'), 'success');
       router.reload();
     } catch (error) {
@@ -209,7 +209,7 @@ export default function TransactionManagement({ transactions, filters, stats, us
         <div className="flex-1">
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="mb-8">
-              <h1 className="text-4xl font-bold text-black dark:text-white mb-2">{t('transactionManagement')}</h1>
+              <h1 className="text-4xl text-black dark:text-white mb-2">{t('transactionManagement')}</h1>
               <p className="text-zinc-600 dark:text-zinc-400">{t('viewTransactionsSubtitle')}</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
@@ -217,7 +217,7 @@ export default function TransactionManagement({ transactions, filters, stats, us
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{t('totalRevenue')}</p>
-                    <p className="text-3xl font-bold text-black dark:text-white mt-2">${Number(stats.totalRevenue || 0).toFixed(2)}</p>
+                    <p className="text-3xl text-black dark:text-white mt-2">{t('currencySymbol')}{Number(stats.totalRevenue || 0).toFixed(2)}</p>
                   </div>
                   <div className="p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
                     <DollarSign className="w-6 h-6 text-green-600 dark:text-green-400" />
@@ -228,7 +228,7 @@ export default function TransactionManagement({ transactions, filters, stats, us
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{t('totalTransactions')}</p>
-                    <p className="text-3xl font-bold text-black dark:text-white mt-2">{stats.totalTransactions}</p>
+                    <p className="text-3xl text-black dark:text-white mt-2">{stats.totalTransactions}</p>
                   </div>
                   <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                     <CreditCard className="w-6 h-6 text-blue-600 dark:text-blue-400" />
@@ -239,7 +239,7 @@ export default function TransactionManagement({ transactions, filters, stats, us
                 <div className="flex items-center justify-between">
                   <div>
                     <p className="text-sm font-medium text-zinc-600 dark:text-zinc-400">{t('completed')}</p>
-                    <p className="text-3xl font-bold text-black dark:text-white mt-2">
+                    <p className="text-3xl text-black dark:text-white mt-2">
                       {stats.completedTransactions}
                     </p>
                   </div>

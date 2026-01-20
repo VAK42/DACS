@@ -129,7 +129,7 @@ export default function EnrollmentManagement({ enrollments, users, courses, filt
     try {
       const response = await fetch('/admin/enrollments/export', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
       if (response.status === 419) { window.location.reload(); return; }
-      if (!response.ok) throw new Error('Export Failed');
+      if (!response.ok) throw new Error(t('exportFailed'));
       const allEnrollments = await response.json();
       const exportColumns = columns.filter(col => col.key !== 'actions');
       const headers = exportColumns.map(col => col.label).join(',');
@@ -139,7 +139,7 @@ export default function EnrollmentManagement({ enrollments, users, courses, filt
         else if (col.key === 'course') value = enrollment.course.courseTitle;
         else if (col.key === 'enrollmentDate') value = new Date(enrollment.enrollmentDate).toLocaleDateString();
         else if (col.key === 'completionPercent') value = `${enrollment.completionPercent}%`;
-        else if (col.key === 'isPaid') value = enrollment.isPaid ? 'Yes' : 'No';
+        else if (col.key === 'isPaid') value = enrollment.isPaid ? t('paid') : t('unpaid');
         else value = enrollment[col.key as keyof Enrollment];
         return typeof value === 'string' && value.includes(',') ? `"${value}"` : (value ?? '');
       }).join(',')).join('\n');
@@ -148,7 +148,7 @@ export default function EnrollmentManagement({ enrollments, users, courses, filt
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = 'Enrollments.csv';
+      link.download = `${t('enrollmentsExportFilename')}.csv`;
       link.click();
       URL.revokeObjectURL(url);
       showToast(t('enrollmentsExportedSuccess'), 'success');
@@ -292,7 +292,7 @@ export default function EnrollmentManagement({ enrollments, users, courses, filt
           <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-4xl font-bold text-black dark:text-white mb-2">{t('enrollmentManagement')}</h1>
+                <h1 className="text-4xl text-black dark:text-white mb-2">{t('enrollmentManagement')}</h1>
                 <p className="text-zinc-600 dark:text-zinc-400">{t('manageEnrollmentsSubtitle')}</p>
               </div>
               <button onClick={() => setIsCreateModalOpen(true)} className="flex items-center gap-2 px-6 py-3 bg-black dark:bg-white text-white dark:text-black font-medium hover:bg-zinc-800 dark:hover:bg-zinc-200 cursor-pointer">
