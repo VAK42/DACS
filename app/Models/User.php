@@ -97,6 +97,14 @@ class User extends Authenticatable
   {
     return $this->hasMany(\App\Models\Payout::class, 'instructorId', 'userId');
   }
+  public function conversations()
+  {
+    return Conversation::forUser($this->userId)->orderBy('lastMessageAt', 'desc');
+  }
+  public function chatMessages()
+  {
+    return $this->hasMany(ChatMessage::class, 'senderId', 'userId');
+  }
   public function getRememberTokenName()
   {
     return 'rememberToken';

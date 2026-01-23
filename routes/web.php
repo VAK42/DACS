@@ -35,6 +35,7 @@ Route::middleware(['auth', AdminRouteMiddleware::class])->group(function () {
   Route::delete('/api/notifications/{notificationId}', [Shared\NotificationController::class, 'destroy']);
   Route::post('/api/notifications/{notificationId}/read', [Shared\NotificationController::class, 'markAsRead']);
   Route::post('/api/notifications/readAll', [Shared\NotificationController::class, 'markAllAsRead']);
+  Route::get('/api/notifications/unreadCount', [Shared\NotificationController::class, 'unreadCount']);
   Route::post('/api/payment/create', [Learner\PaymentController::class, 'create']);
   Route::post('/api/quiz/{quizId}/submit', [Learner\QuizController::class, 'submit']);
   Route::get('/assessment/{assessmentId}', [Learner\AssessmentController::class, 'show']);
@@ -61,6 +62,16 @@ Route::middleware(['auth', AdminRouteMiddleware::class])->group(function () {
   Route::delete('/user/twoFactorAuthentication', [Auth\TwoFactorController::class, 'disable'])->name('twoFactor.disable');
   Route::post('/user/twoFactorAuthentication', [Auth\TwoFactorController::class, 'enable'])->name('twoFactor.enable');
   Route::get('/wishlist', [Learner\WishlistController::class, 'index'])->name('wishlist');
+  // Chat routes
+  Route::get('/chat', [Shared\ChatController::class, 'index'])->name('chat');
+  Route::get('/api/chat/contacts', [Shared\ChatController::class, 'getContacts']);
+  Route::get('/api/chat/conversations', [Shared\ChatController::class, 'getConversations']);
+  Route::post('/api/chat/conversations', [Shared\ChatController::class, 'createConversation']);
+  Route::get('/api/chat/conversations/{conversationId}/messages', [Shared\ChatController::class, 'getMessages']);
+  Route::post('/api/chat/conversations/{conversationId}/messages', [Shared\ChatController::class, 'sendMessage']);
+  Route::post('/api/chat/conversations/{conversationId}/upload', [Shared\ChatController::class, 'uploadFile']);
+  Route::post('/api/chat/conversations/{conversationId}/read', [Shared\ChatController::class, 'markAsRead']);
+  Route::post('/api/chat/conversations/{conversationId}/typing', [Shared\ChatController::class, 'typing']);
 });
 Route::middleware(['auth', 'role:instructor'])->group(function () {
   Route::put('/api/instructor/bankInfo', [Instructor\EarningsController::class, 'updateBankInfo']);

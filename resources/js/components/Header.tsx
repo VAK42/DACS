@@ -1,4 +1,4 @@
-import { BookOpen, User, LogOut, Menu, X, Search, Sun, Moon, ChevronDown, Bell, Settings, LayoutDashboard, Heart, LifeBuoy } from 'lucide-react';
+import { BookOpen, User, LogOut, Menu, X, Search, Sun, Moon, ChevronDown, Bell, Settings, LayoutDashboard, Heart, LifeBuoy, MessageCircle } from 'lucide-react';
 import { Link, router, usePage } from '@inertiajs/react';
 import { useState, useRef, useEffect } from 'react';
 import { useTheme } from '../contexts/ThemeContext';
@@ -20,6 +20,29 @@ export default function Header({ user }: HeaderProps) {
   const { theme, toggleTheme } = useTheme();
   const { t } = useTranslation();
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [unreadMessages, setUnreadMessages] = useState(0);
+  const [unreadNotifications, setUnreadNotifications] = useState(0);
+
+  // Fetch unread counts
+  useEffect(() => {
+    if (user) {
+      // Chat unread count
+      fetch('/api/chat/conversations')
+        .then(res => res.json())
+        .then(data => {
+          const totalUnread = data.reduce((sum: number, c: { unreadCount: number }) => sum + (c.unreadCount || 0), 0);
+          setUnreadMessages(totalUnread);
+        })
+        .catch(() => { });
+
+      // Notifications unread count
+      fetch('/api/notifications/unreadCount')
+        .then(res => res.json())
+        .then(data => setUnreadNotifications(data.count))
+        .catch(() => { });
+    }
+  }, [user]);
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -29,27 +52,33 @@ export default function Header({ user }: HeaderProps) {
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       router.get('/courses', { search: searchQuery });
     }
   };
+
   const isActive = (path: string) => url === path || (path !== '/' && url.startsWith(path));
   const getNavLinkClass = (path: string) => `px-4 py-2 rounded border text-sm uppercase tracking-wide transition-all cursor-pointer ${isActive(path) ? 'bg-green-950 text-white border-green-950 dark:bg-white dark:text-green-950 dark:border-white font-medium' : 'border-transparent text-zinc-600 dark:text-zinc-300 hover:border-green-950 hover:text-green-950 dark:hover:border-white dark:hover:text-white'}`;
+
   const getDashboardPath = () => {
     if (!user) return '/dashboard';
     if (user.role === 'admin') return '/admin/dashboard';
     if (user.role === 'instructor') return '/instructor/dashboard';
     return '/dashboard';
   };
+
   const userMenuItems = user?.role === 'admin' ? [] : [
     { href: getDashboardPath(), icon: LayoutDashboard, label: t('dashboard') },
     ...(user?.role === 'learner' ? [{ href: '/wishlist', icon: Heart, label: t('myWishlist') }] : []),
+    { href: '/chat', icon: MessageCircle, label: t('messages') || 'Messages' },
     { href: '/supportTickets', icon: LifeBuoy, label: t('supportTickets') },
     { href: '/notifications', icon: Bell, label: t('notifications') },
     { href: '/settings', icon: Settings, label: t('settings') },
   ];
+
   return (
     <nav className="sticky top-0 z-50 bg-white dark:bg-black border-b border-green-950 dark:border-white shadow-sm">
       <div className="mx-auto px-4 sm:px-6 lg:px-8">
@@ -67,14 +96,36 @@ export default function Header({ user }: HeaderProps) {
               <Link href="/blogs" className={getNavLinkClass('/blogs')}>{t('blog')}</Link>
             </div>
           </div>
+
           <div className="hidden md:flex items-center gap-4 flex-1 mx-4">
             <form onSubmit={handleSearch} className="relative w-full">
               <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-950 dark:text-zinc-50" />
               <input type="text" value={searchQuery} onChange={(e) => setSearchQuery(e.target.value)} placeholder={t('searchCourses')} className="w-full pl-11 pr-4 py-2.5 bg-white dark:bg-black border bg-transparent rounded text-sm focus:outline-none focus:border-green-950 dark:focus:border-white transition-all text-zinc-900 dark:text-zinc-100 placeholder-zinc-500 dark:placeholder-zinc-400" />
             </form>
           </div>
+
           <div className="hidden md:flex items-center gap-4">
             <LanguageSwitcher />
+            {user && (
+              <>
+                <Link href="/chat" className="relative p-2 text-zinc-500 hover:text-green-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer rounded border border-transparent hover:border-green-950 dark:hover:border-white">
+                  <MessageCircle className="w-5 h-5" />
+                  {unreadMessages > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                      {unreadMessages > 9 ? '9+' : unreadMessages}
+                    </span>
+                  )}
+                </Link>
+                <Link href="/notifications" className="relative p-2 text-zinc-500 hover:text-green-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer rounded border border-transparent hover:border-green-950 dark:hover:border-white">
+                  <Bell className="w-5 h-5" />
+                  {unreadNotifications > 0 && (
+                    <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
+                      {unreadNotifications > 9 ? '9+' : unreadNotifications}
+                    </span>
+                  )}
+                </Link>
+              </>
+            )}
             <button onClick={toggleTheme} className="p-2 text-zinc-500 hover:text-green-950 dark:text-zinc-400 dark:hover:text-white transition-colors cursor-pointer rounded border border-transparent hover:border-green-950 dark:hover:border-white">
               {theme === 'light' ? <Moon className="w-5 h-5" /> : <Sun className="w-5 h-5" />}
             </button>

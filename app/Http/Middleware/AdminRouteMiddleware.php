@@ -12,6 +12,11 @@ class AdminRouteMiddleware
       return $next($request);
     }
     $currentPath = $request->path() === '/' ? '/' : $request->path();
+    
+    // Allow chat routes for all authenticated users
+    if (str_starts_with($currentPath, 'chat') || str_starts_with($currentPath, 'api/chat')) {
+      return $next($request);
+    }
     $adminRoutes = ['admin/*'];
     $instructorRoutes = ['instructor/*', 'api/instructor/*'];
     $learnerRoutes = ['dashboard', 'lessons/*', 'wishlist'];

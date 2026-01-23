@@ -6,6 +6,14 @@ use Inertia\Inertia;
 use App\Models\Notification;
 class NotificationController extends Controller
 {
+  public function unreadCount(Request $request)
+  {
+    $count = Notification::where('userId', $request->user()->userId)
+      ->where('isRead', false)
+      ->count();
+    return response()->json(['count' => $count]);
+  }
+  
   public function index(Request $request)
   {
     $notifications = Notification::where('userId', $request->user()->userId)

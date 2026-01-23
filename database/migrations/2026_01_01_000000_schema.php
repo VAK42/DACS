@@ -367,9 +367,57 @@ return new class extends Migration
       $table->index('slug');
       $table->index('isPublished');
     });
+    // Chat Conversations
+    Schema::create('conversations', function (Blueprint $table) {
+      $table->id('conversationId');
+      $table->enum('type', ['private', 'group'])->default('private');
+      $table->unsignedBigInteger('user1Id')->nullable();
+      $table->unsignedBigInteger('user2Id')->nullable();
+      $table->unsignedBigInteger('courseId')->nullable();
+      $table->string('name')->nullable();
+      $table->timestamp('lastMessageAt')->nullable();
+      $table->timestamp('createdAt')->useCurrent();
+      $table->timestamp('updatedAt')->useCurrent()->useCurrentOnUpdate();
+      $table->foreign('user1Id')->references('userId')->on('users')->onDelete('cascade');
+      $table->foreign('user2Id')->references('userId')->on('users')->onDelete('cascade');
+      $table->foreign('courseId')->references('courseId')->on('courses')->onDelete('cascade');
+      $table->unique(['user1Id', 'user2Id', 'courseId'], 'unique_private_conversation');
+      $table->index('courseId');
+      $table->index('lastMessageAt');
+      $table->index(['user1Id', 'user2Id']);
+    });
+    // Conversation Participants (for group chat)
+    Schema::create('conversationParticipants', function (Blueprint $table) {
+      $table->unsignedBigInteger('conversationId');
+      $table->unsignedBigInteger('userId');
+      $table->timestamp('joinedAt')->useCurrent();
+      $table->primary(['conversationId', 'userId']);
+      $table->foreign('conversationId')->references('conversationId')->on('conversations')->onDelete('cascade');
+      $table->foreign('userId')->references('userId')->on('users')->onDelete('cascade');
+    });
+    // Chat Messages
+    Schema::create('chatMessages', function (Blueprint $table) {
+      $table->id('messageId');
+      $table->unsignedBigInteger('conversationId');
+      $table->unsignedBigInteger('senderId');
+      $table->enum('type', ['text', 'image', 'file'])->default('text');
+      $table->text('content')->nullable();
+      $table->string('filePath')->nullable();
+      $table->string('fileName')->nullable();
+      $table->boolean('isRead')->default(false);
+      $table->timestamp('readAt')->nullable();
+      $table->timestamp('createdAt')->useCurrent();
+      $table->timestamp('updatedAt')->useCurrent()->useCurrentOnUpdate();
+      $table->foreign('conversationId')->references('conversationId')->on('conversations')->onDelete('cascade');
+      $table->foreign('senderId')->references('userId')->on('users')->onDelete('cascade');
+      $table->index(['conversationId', 'createdAt']);
+    });
   }
   public function down(): void
   {
+    Schema::dropIfExists('chatMessages');
+    Schema::dropIfExists('conversationParticipants');
+    Schema::dropIfExists('conversations');
     Schema::dropIfExists('quizAttempts');
     Schema::dropIfExists('quizQuestions');
     Schema::dropIfExists('quizzes');
