@@ -1,1 +1,9 @@
-node_modules
+./node_modules
+./storage
+./vendor
+./public/storage
+./resources/js/actions
+./resources/js/routes
+./resources/js/wayfinder
+composer.lock
+package-json.lock
