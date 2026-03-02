@@ -7,6 +7,10 @@ interface Enrollment {
   enrollmentDate: string;
   completionPercent: number;
   isPaid: boolean;
+  personalDeadline: {
+    courseDeadline: string;
+  } | null;
+  deadlineStatus: 'onTrack' | 'dueSoon' | 'overdue' | 'none';
   user: {
     userId: number;
     userName: string;
@@ -84,6 +88,18 @@ export default function Students({ enrollments, user }: Props) {
                             </div>
                             <span className="text-sm text-green-950 dark:text-white">{enrollment.completionPercent}%</span>
                           </div>
+                        </div>
+                        <div className="text-right min-w-[100px]">
+                          <p className="text-xs text-zinc-500 uppercase tracking-wide mb-1">{t('deadlineStatus')}</p>
+                          <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${enrollment.deadlineStatus === 'overdue' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                              enrollment.deadlineStatus === 'dueSoon' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                enrollment.deadlineStatus === 'onTrack' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                                  'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'
+                            }`}>
+                            {enrollment.deadlineStatus === 'overdue' ? t('deadlineOverdue') :
+                              enrollment.deadlineStatus === 'dueSoon' ? t('deadlineDueSoon') :
+                                enrollment.deadlineStatus === 'onTrack' ? t('deadlineOnTrack') : t('noDeadline')}
+                          </span>
                         </div>
                         <div className="text-right min-w-[100px]">
                           <p className="text-xs text-zinc-500 uppercase tracking-wide mb-1">{t('enrolledDate')}</p>

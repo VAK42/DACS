@@ -12,6 +12,10 @@ class StudentController extends Controller
         $q->where('instructorId', auth()->id());
       })
       ->paginate(50);
+    $enrollments->getCollection()->transform(function ($enrollment) {
+      $enrollment->deadlineStatus = $enrollment->getDeadlineStatus();
+      return $enrollment;
+    });
     return Inertia::render('Instructor/Students', ['enrollments' => $enrollments, 'user' => auth()->user()]);
   }
 }

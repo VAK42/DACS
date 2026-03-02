@@ -28,11 +28,11 @@ class DashboardController extends Controller
         }
       }
       $completedLessons = count($lessonIds) > 0
-      ? Progress::where('userId', $user->userId)
-        ->whereIn('lessonId', $lessonIds)
-        ->where('isCompleted', true)
-        ->count()
-      : 0;
+        ? Progress::where('userId', $user->userId)
+          ->whereIn('lessonId', $lessonIds)
+          ->where('isCompleted', true)
+          ->count()
+        : 0;
       $progressPercent = $totalLessons > 0 ? round(($completedLessons / $totalLessons) * 100, 0) : 0;
       return [
         'enrollment' => $enrollment,
@@ -40,6 +40,8 @@ class DashboardController extends Controller
         'totalLessons' => $totalLessons,
         'completedLessons' => $completedLessons,
         'progressPercent' => $progressPercent,
+        'personalDeadline' => $enrollment->personalDeadline,
+        'deadlineStatus' => $enrollment->getDeadlineStatus(),
       ];
     });
     return Inertia::render('Learner/Dashboard', [

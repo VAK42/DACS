@@ -1,4 +1,4 @@
-import { PlayCircle, Clock, Star, CheckCircle, Users, Share2, Heart, FileText, Download, Award, MessageSquare } from 'lucide-react';
+import { PlayCircle, Clock, Star, CheckCircle, Users, Share2, Heart, FileText, Download, Award, MessageSquare, CalendarClock } from 'lucide-react';
 import { Head, Link, router, usePage } from '@inertiajs/react';
 import { useToast } from '../../contexts/ToastContext';
 import { useState } from 'react';
@@ -38,6 +38,7 @@ interface CourseDetailProps {
     resourcesCount?: number;
     hasCertificate?: boolean;
     courseImage?: string | null;
+    deadline?: string | null;
   };
   adminQrPath?: string;
   quiz?: { quizId: number; quizTitle: string } | null;
@@ -129,6 +130,9 @@ export default function CourseDetail({ course, adminQrPath, isEnrolled, isInWish
                   <Clock className="w-4 h-4" />
                   <span>{t('lastUpdated')} {new Date(course.lastUpdated).toLocaleDateString((usePage().props as any).locale, { month: 'long', year: 'numeric' })}</span>
                 </div>
+                <p className="text-sm text-zinc-500 dark:text-zinc-400 italic mt-1">
+                  {t('personalDeadlineNote')}
+                </p>
               </div>
               <div className="flex items-center gap-4 pt-4">
                 {!isEnrolled && (

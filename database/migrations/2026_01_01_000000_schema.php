@@ -2,8 +2,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
-return new class extends Migration
-{
+return new class extends Migration {
   public function up(): void
   {
     Schema::create('users', function (Blueprint $table) {
@@ -56,6 +55,7 @@ return new class extends Migration
       $table->foreignId('categoryId')->constrained('categories', 'categoryId')->onDelete('cascade');
       $table->jsonb('courseMeta')->nullable();
       $table->boolean('isPublished')->default(false);
+      $table->timestamp('deadline')->nullable();
       $table->decimal('averageRating', 3, 2)->default(0);
       $table->integer('totalEnrollments')->default(0);
       $table->timestamp('createdAt')->nullable();

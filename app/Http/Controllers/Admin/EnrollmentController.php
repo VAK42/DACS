@@ -29,6 +29,10 @@ class EnrollmentController extends Controller
       $query->where('isPaid', $isPaid);
     }
     $enrollments = $query->orderBy('createdAt', 'desc')->paginate(2);
+    $enrollments->getCollection()->transform(function ($enrollment) {
+      $enrollment->deadlineStatus = $enrollment->getDeadlineStatus();
+      return $enrollment;
+    });
     $users = User::where('role', 'learner')->where('userId', '!=', auth()->id())->get();
     $courses = Course::where('isPublished', true)->get();
     return Inertia::render('Admin/EnrollmentManagement', [
@@ -53,13 +57,14 @@ class EnrollmentController extends Controller
     if ($exists) {
       return redirect()->back()->withErrors(['error' => 'User Is Already Enrolled In This Course!']);
     }
-    Enrollment::create([
+    $enrollment = Enrollment::create([
       'userId' => $validated['userId'],
       'courseId' => $validated['courseId'],
       'isPaid' => $validated['isPaid'],
       'completionPercent' => $validated['completionPercent'],
       'enrollmentDate' => now(),
     ]);
+    $enrollment->generatePersonalDeadline();
     return redirect()->back()->with('success', 'Enrollment Created Successfully!');
   }
   public function update(Request $request, $userId, $courseId)

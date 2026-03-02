@@ -46,6 +46,7 @@ Route::middleware(['auth', AdminRouteMiddleware::class])->group(function () {
   Route::post('/api/supportTickets/{ticketId}/close', [Shared\SupportTicketController::class, 'close']);
   Route::post('/api/supportTickets/{ticketId}/reply', [Shared\SupportTicketController::class, 'reply']);
   Route::post('/api/wishlist/toggle', [Learner\WishlistController::class, 'toggle'])->name('wishlist.toggle');
+  Route::post('/api/enrollments/{courseId}/resetDeadlines', [Learner\DeadlineController::class, 'reset']);
   Route::get('/certificates', [Learner\CertificateController::class, 'index'])->name('certificates');
   Route::get('/certificates/{certificateId}', [Learner\CertificateController::class, 'show'])->name('certificates.view');
   Route::get('/courses/{courseId}/discussions', [Learner\DiscussionController::class, 'page'])->name('course.discussions');

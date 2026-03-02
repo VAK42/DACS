@@ -71,7 +71,7 @@ class CourseController extends Controller
       });
       return $module;
     });
-    $hasCertificate = Certificate::whereHas('course', function($q) use ($courseId) {
+    $hasCertificate = Certificate::whereHas('course', function ($q) use ($courseId) {
       $q->where('courseId', $courseId);
     })->exists();
     $user = auth()->user();
@@ -104,6 +104,7 @@ class CourseController extends Controller
         'articlesCount' => $articlesCount,
         'resourcesCount' => $articlesCount,
         'hasCertificate' => $hasCertificate,
+        'deadline' => $course->deadline,
       ]),
       'adminQrPath' => Storage::disk('public')->exists('adminQr.png') ? '/storage/adminQr.png' : null,
       'enrollmentCount' => $enrollmentCount,

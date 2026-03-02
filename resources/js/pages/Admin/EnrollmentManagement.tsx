@@ -15,6 +15,8 @@ interface Enrollment {
   completionPercent: number;
   enrollmentDate: string;
   isPaid: boolean;
+  deadlineStatus: 'onTrack' | 'dueSoon' | 'overdue' | 'none';
+  personalDeadline: { courseDeadline: string } | null;
 }
 interface User {
   userId: number;
@@ -192,6 +194,21 @@ export default function EnrollmentManagement({ enrollments, users, courses, filt
             <div className="bg-blue-600 h-2 rounded-full" style={{ width: `${value || 0}%` }}></div>
           </div>
         </div>
+      )
+    },
+    {
+      key: 'deadlineStatus',
+      label: t('deadlineStatus'),
+      render: (_: any, row: Enrollment) => (
+        <span className={`px-2 py-1 rounded text-xs font-medium ${row.deadlineStatus === 'overdue' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+            row.deadlineStatus === 'dueSoon' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+              row.deadlineStatus === 'onTrack' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' :
+                'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400'
+          }`}>
+          {row.deadlineStatus === 'overdue' ? t('deadlineOverdue') :
+            row.deadlineStatus === 'dueSoon' ? t('deadlineDueSoon') :
+              row.deadlineStatus === 'onTrack' ? t('deadlineOnTrack') : t('noDeadline')}
+        </span>
       )
     },
     {

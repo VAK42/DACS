@@ -1,6 +1,7 @@
-import { BookOpen, Award, TrendingUp, PlayCircle } from 'lucide-react';
+import { BookOpen, Award, TrendingUp, PlayCircle, CalendarClock, RefreshCw } from 'lucide-react';
 import { Head, Link } from '@inertiajs/react';
 import { useState } from 'react';
+import { useToast } from '../../contexts/ToastContext';
 import Layout from '../../components/Layout';
 import useTranslation from '../../hooks/useTranslation';
 interface EnrolledCourse {
@@ -9,6 +10,7 @@ interface EnrolledCourse {
     courseId: number;
     courseTitle: string;
     courseImage: string | null;
+    deadline: string | null;
     instructor: {
       userName: string;
     };
@@ -16,6 +18,13 @@ interface EnrolledCourse {
   totalLessons: number;
   completedLessons: number;
   progressPercent: number;
+  personalDeadline: {
+    courseDeadline: string;
+    moduleDeadlines: { moduleId: number; moduleTitle: string; deadline: string; week: number }[];
+    daysPerModule: number;
+    lastResetAt: string;
+  } | null;
+  deadlineStatus: 'onTrack' | 'dueSoon' | 'overdue' | 'none';
 }
 interface DashboardProps {
   enrolledCourses: EnrolledCourse[];
@@ -23,10 +32,38 @@ interface DashboardProps {
 }
 export default function LearnerDashboard({ enrolledCourses, user }: DashboardProps) {
   const { t } = useTranslation();
+  const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<'recent' | 'inProgress' | 'completed'>('recent');
+  const [resetLoading, setResetLoading] = useState<number | null>(null);
   const recentCourses = enrolledCourses;
   const inProgressCourses = enrolledCourses.filter(c => c.progressPercent > 0 && c.progressPercent < 100);
   const completedCourses = enrolledCourses.filter(c => c.progressPercent === 100);
+  const handleResetDeadline = async (courseId: number) => {
+    if (!confirm(t('resetDeadlinesConfirm'))) return;
+    setResetLoading(courseId);
+    try {
+      const response = await fetch(`/api/enrollments/${courseId}/resetDeadlines`, {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || ''
+        }
+      });
+      if (response.status === 419) { window.location.reload(); return; }
+      if (response.ok) {
+        showToast(t('deadlinesResetSuccess'), 'success');
+        window.location.reload();
+      } else {
+        showToast(t('resetDeadlinesFailed'), 'error');
+      }
+    } catch {
+      showToast(t('resetDeadlinesFailed'), 'error');
+    } finally {
+      setResetLoading(null);
+    }
+  };
   const displayedCourses = activeTab === 'recent' ? recentCourses : activeTab === 'inProgress' ? inProgressCourses : completedCourses;
   return (
     <Layout user={user}>
@@ -125,6 +162,34 @@ export default function LearnerDashboard({ enrolledCourses, user }: DashboardPro
                       <p className="text-sm text-zinc-600 dark:text-zinc-400">
                         {t('by')} {item.course.instructor.userName}
                       </p>
+                      {item.deadlineStatus !== 'none' && item.personalDeadline && (
+                        <div className="mt-2 space-y-1.5">
+                          <div className="flex items-center justify-between">
+                            <span className={`inline-block px-2 py-0.5 rounded text-xs font-medium ${item.deadlineStatus === 'overdue' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                                item.deadlineStatus === 'dueSoon' ? 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400' :
+                                  'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
+                              }`}>
+                              {item.deadlineStatus === 'overdue' ? t('deadlineOverdue') :
+                                item.deadlineStatus === 'dueSoon' ? t('deadlineDueSoon') :
+                                  t('deadlineOnTrack')}
+                            </span>
+                            {item.deadlineStatus === 'overdue' && (
+                              <button
+                                onClick={(e) => { e.preventDefault(); handleResetDeadline(item.course.courseId); }}
+                                disabled={resetLoading === item.course.courseId}
+                                className="flex items-center gap-1 px-2 py-0.5 text-xs font-medium text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded transition-colors cursor-pointer"
+                              >
+                                <RefreshCw className={`w-3 h-3 ${resetLoading === item.course.courseId ? 'animate-spin' : ''}`} />
+                                {t('resetDeadlines')}
+                              </button>
+                            )}
+                          </div>
+                          <p className="text-xs text-zinc-500 dark:text-zinc-400 flex items-center gap-1">
+                            <CalendarClock className="w-3 h-3" />
+                            {t('courseDeadlineLabel')}: {new Date(item.personalDeadline.courseDeadline).toLocaleDateString()}
+                          </p>
+                        </div>
+                      )}
                     </div>
                     <div className="space-y-2">
                       <div className="flex items-center justify-between text-sm">

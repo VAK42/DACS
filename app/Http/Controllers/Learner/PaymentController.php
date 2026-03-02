@@ -66,7 +66,7 @@ class PaymentController extends Controller
         $transaction->transactionId,
         ['courseId' => $transaction->courseId, 'learnerId' => $transaction->userId]
       );
-      Enrollment::firstOrCreate(
+      $enrollment = Enrollment::firstOrCreate(
         [
           'userId' => $request->user()->userId,
           'courseId' => $transaction->courseId,
@@ -76,6 +76,7 @@ class PaymentController extends Controller
           'isPaid' => true,
         ]
       );
+      $enrollment->generatePersonalDeadline();
     });
     return response()->json(['message' => 'Payment Completed!']);
   }
@@ -102,7 +103,7 @@ class PaymentController extends Controller
         $transaction->transactionId,
         ['courseId' => $transaction->courseId, 'learnerId' => $transaction->userId]
       );
-      Enrollment::firstOrCreate(
+      $enrollment = Enrollment::firstOrCreate(
         [
           'userId' => $transaction->userId,
           'courseId' => $transaction->courseId,
@@ -112,6 +113,7 @@ class PaymentController extends Controller
           'isPaid' => true,
         ]
       );
+      $enrollment->generatePersonalDeadline();
     });
     return response()->json(['message' => 'Payment Confirmed!']);
   }
